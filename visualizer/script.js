@@ -304,6 +304,21 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 		ctx.putImageData(img, 0, 0);
 	}
 	gen_obscurity(null);
+	
+	
+	let scale = 1.0
+	window.onwheel = ev => {
+		event.preventDefault();
+		let zoom = document.getElementById("zoomers");
+		scale += event.deltaY * -0.001;
+
+		// Restrict scale
+		scale = Math.min(Math.max(0.125, scale), 4);
+
+		// Apply scale transform
+		zoom.style.transform = `scale(${scale})`;
+	}
+	
 	let el = document.getElementById("room-info");
 	let dragging = false;
 	let dragged = false;

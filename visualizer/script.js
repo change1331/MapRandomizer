@@ -307,16 +307,14 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 	
 	
 	let scale = 1.0
-	window.onwheel = ev => {
-		event.preventDefault();
-		let zoom = document.getElementById("zoomers");
-		scale += event.deltaY * -0.001;
+	document.getElementById("zoomers").onwheel = ev => {
+		scale += ev.deltaY * -0.001;
 
 		// Restrict scale
 		scale = Math.min(Math.max(0.125, scale), 4);
 
 		// Apply scale transform
-		zoom.style.transform = `scale(${scale})`;
+		document.getElementById("zoomers").style.transform = `scale(${scale})`;
 	}
 	
 	let el = document.getElementById("room-info");

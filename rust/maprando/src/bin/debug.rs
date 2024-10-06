@@ -140,6 +140,7 @@ fn run_scenario(
         etank_refill: maprando::randomize::EtankRefill::Vanilla,
         maps_revealed: MapsRevealed::Full,
         map_station_reveal: MapStationReveal::Full,
+        slowbomb: false,
         energy_free_shinesparks: false,
         vanilla_map: false,
         ultra_low_qol: false,

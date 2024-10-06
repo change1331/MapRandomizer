@@ -167,6 +167,7 @@ fn create_difficulty_from_preset(preset: &Preset) -> DifficultyConfig {
         door_locks_size: maprando::randomize::DoorLocksSize::Small,
         maps_revealed: maprando::randomize::MapsRevealed::No,
         map_station_reveal: maprando::randomize::MapStationReveal::Full,
+        slowbomb: false,
         energy_free_shinesparks: false,
         ultra_low_qol: false,
 

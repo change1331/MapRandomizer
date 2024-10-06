@@ -160,6 +160,11 @@ impl<'a> SeedHeaderTemplate<'a> {
             game_variations.push("Map stations give partial reveal");
         }
 
+        
+        if self.difficulty.slowbomb {
+            game_variations.push("Slow bomb");
+        }
+
         if self.difficulty.energy_free_shinesparks {
             game_variations.push("Energy-free shinesparks");
         }
@@ -331,6 +336,7 @@ pub fn get_difficulty_tiers(
             etank_refill: difficulty.etank_refill,
             maps_revealed: difficulty.maps_revealed,
             map_station_reveal: difficulty.map_station_reveal,
+            slowbomb: difficulty.slowbomb,
             energy_free_shinesparks: difficulty.energy_free_shinesparks,
             vanilla_map: difficulty.vanilla_map,
             ultra_low_qol: difficulty.ultra_low_qol,

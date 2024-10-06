@@ -142,6 +142,7 @@ fn get_randomization(args: &Args, game_data: &GameData) -> Result<Randomization>
         etank_refill: maprando::randomize::EtankRefill::Vanilla,
         maps_revealed: maprando::randomize::MapsRevealed::Full,
         map_station_reveal: MapStationReveal::Full,
+        slowbomb: true,
         energy_free_shinesparks: false,
         vanilla_map: false,
         ultra_low_qol: false,

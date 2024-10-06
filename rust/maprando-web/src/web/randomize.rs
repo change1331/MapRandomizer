@@ -143,6 +143,7 @@ struct RandomizeRequest {
     etank_refill: Text<String>,
     maps_revealed: Text<String>,
     map_station_reveal: Text<String>,
+    slowbomb: Text<bool>,
     energy_free_shinesparks: Text<bool>,
     ultra_low_qol: Text<bool>,
 }
@@ -483,6 +484,7 @@ async fn randomize(
             ),
         },
         vanilla_map,
+        slowbomb: req.slowbomb.0,
         energy_free_shinesparks: req.energy_free_shinesparks.0,
         ultra_low_qol: req.ultra_low_qol.0,
         skill_assumptions_preset: req.preset.as_ref().map(|x| x.0.clone()),

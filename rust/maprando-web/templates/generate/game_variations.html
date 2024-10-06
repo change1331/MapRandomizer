@@ -101,6 +101,19 @@
 </div>
 <div class="form-group row">
     <div class="col-lg-4 col-md-6 my-2">
+        {% include "help/variations/slowbomb.html" %}
+        <label for="wall_jump">Slow bombs with powerbombs</label>
+    </div>
+    <div class="col-2 btn-group my-2" role="group">
+        <input type="radio" class="btn-check" name="slowbomb" id="slowbombNo" value="false"
+            checked>
+        <label class="btn btn-outline-primary" for="slowbombNo">No</label>
+        <input type="radio" class="btn-check" name="slowbomb" id="slowbombYes" value="true">
+        <label class="btn btn-outline-primary" for="slowbombYes">Yes</label>
+    </div>
+</div>
+<div class="form-group row">
+    <div class="col-lg-4 col-md-6 my-2">
         {% include "help/variations/energy_free_shinesparks.html" %}
         <label for="wall_jump">Energy-free shinesparks</label>
     </div>

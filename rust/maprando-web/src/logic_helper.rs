@@ -387,6 +387,8 @@ fn get_difficulty_config(preset: &PresetData, _game_data: &GameData) -> Difficul
         map_station_reveal: MapStationReveal::Full,
         vanilla_map: false,
         ultra_low_qol: false,
+        
+        slowbomb: true,
         energy_free_shinesparks: false,
         skill_assumptions_preset: None,
         item_progression_preset: None,

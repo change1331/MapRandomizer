@@ -283,6 +283,7 @@ pub struct DifficultyConfig {
     pub maps_revealed: MapsRevealed,
     pub map_station_reveal: MapStationReveal,
     pub energy_free_shinesparks: bool,
+    pub slowbomb: bool,
     pub vanilla_map: bool,
     pub ultra_low_qol: bool,
     // Presets:

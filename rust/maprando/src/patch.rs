@@ -518,6 +518,7 @@ impl<'a> Patcher<'a> {
             }
         }
 
+
         match self.randomization.difficulty.etank_refill {
             EtankRefill::Disabled => {
                 patches.push("etank_refill_disabled");
@@ -530,6 +531,10 @@ impl<'a> Patcher<'a> {
 
         if self.randomization.difficulty.energy_free_shinesparks {
             patches.push("energy_free_shinesparks");
+        }
+
+        if self.randomization.difficulty.slowbomb {
+            patches.push("slowbomb");
         }
 
         if self.randomization.difficulty.respin {

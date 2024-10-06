@@ -350,7 +350,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 				let tile = map[y * 72 + x];
 				if (tile >= 0) {
 					el.innerText = c.all_rooms[tile].room;
-					el.dataset.shortName = c.all_rooms[tile].short_name;
+					el.dataset.roomId = c.all_rooms[tile].room_id;
 					el.style.left = ev.offsetX + 16 + "px";
 					el.style.top = ev.offsetY + "px";
 					el.classList.remove("hidden");
@@ -395,7 +395,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 	}
 	document.getElementById("map").ondblclick = ev => {
 		if (!el.classList.contains("hidden")) {
-			window.open("/logic/room/" + el.dataset.shortName.replace(/\s+/g, ''))
+			window.open("/logic/room/" + el.dataset.roomId);
 		}
 	}
 	let createDiv = (html) => {
@@ -494,7 +494,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 
 		let item_info = document.createElement("div");
 		let item_difficulty = "";
-		if (j.difficulty !== null && j.difficulty !== undefined) {
+		if (j !== null && j.difficulty !== null && j.difficulty !== undefined) {
 			item_difficulty = ` (${j.difficulty})`
 		}
 		item_info.appendChild(createHtmlElement(`<div class="sidebar-item-name">${item_name}${item_difficulty}</div>`));
@@ -512,7 +512,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 				}
 				let out = "";
 				if (!k.strat_name.startsWith("Base ") && k.strat_name != "Base") {
-					let strat_url = `/logic/room/${k.short_room}/${k.from_node_id}/${k.to_node_id}/${k.short_strat_name}`;
+					let strat_url = `/logic/room/${k.room_id}/${k.from_node_id}/${k.to_node_id}/${k.strat_id}`;
 					if (k.strat_notes) {
 						let title = "";
 						for (let i of k.strat_notes) {
@@ -595,7 +595,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 				}
 				out = "";
 				if (!k.strat_name.startsWith("Base ") && k.strat_name != "Base") {
-					let strat_url = `/logic/room/${k.short_room}/${k.from_node_id}/${k.to_node_id}/${k.short_strat_name}`;
+					let strat_url = `/logic/room/${k.room_id}/${k.from_node_id}/${k.to_node_id}/${k.strat_id}`;
 					if (k.strat_notes) {
 						let title = "";
 						for (let i of k.strat_notes) {
@@ -663,7 +663,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 		let j = null;
 		for (let l in c.details) {
 			for (let k of c.details[l].items) {
-				if (k.location.room == v.location.room && k.location.node == v.location.node) {
+				if (k.location.room_id == v.location.room_id && k.location.node_id == v.location.node_id) {
 					i = l;
 					j = k;
 					break;
@@ -681,7 +681,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 		out:
 		for (let i in c.details) {
 			for (let j of c.details[i].items) {
-				if (j.location.room == v.location.room && j.location.node == v.location.node) {
+				if (j.location.room_id == v.location.room_id && j.location.node_id == v.location.node_id) {
 					el.innerHTML += `Step: ${c.details[i].step}<br>`;
 					fin = true;
 					break out;

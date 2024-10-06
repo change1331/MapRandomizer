@@ -4,8 +4,7 @@
     <div class="modal-content">
       <div class="modal-body">
         <video id="video" width=100% controls style="image-rendering: pixelated;">
-          <source id="videoSource"
-            src="https://storage.cloud.google.com/super-metroid-map-rando-videos-webm/Baby%20Skip%20Without%20Wave%20or%20Speed.webm">
+          <source id="videoSource">
         </video>
       </div>
     </div>
@@ -62,4 +61,26 @@
     video.load();
     video.play();
   }
+  function selectVideo(roomId, stratId, videoId) {
+    let aEl = document.getElementById(`video-a-${roomId}-${stratId}`);
+    let pngEl = document.getElementById(`video-png-${roomId}-${stratId}`);
+    let webpEl = document.getElementById(`video-webp-${roomId}-${stratId}`);
+
+    let mp4Url = `{{ video_storage_url }}/mp4/${videoId}.mp4`;
+    let pngUrl = `{{ video_storage_url }}/png/${videoId}.png`;
+    let webpUrl = `{{ video_storage_url }}/webp/${videoId}.webp`;
+
+    aEl.onclick = function() { startVideo(mp4Url) };
+    pngEl.src = pngUrl;
+    webpEl.src = webpUrl;
+  }
+  function initTooltips() {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    for (const tooltipTriggerEl of tooltipTriggerList) {
+      if (tooltipTriggerEl.getAttribute("data-bs-title").length > 0) {
+        new bootstrap.Tooltip(tooltipTriggerEl);
+      }
+    }
+  }
+  document.addEventListener("DOMContentLoaded", initTooltips, false);
 </script>

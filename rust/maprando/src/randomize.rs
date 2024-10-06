@@ -14,7 +14,13 @@ use maprando_game::{
     DoorType, EntranceCondition, ExitCondition, FlagId, Float, GModeMobility, GModeMode, GameData,
     HubLocation, Item, ItemId, ItemLocationId, Link, LinkIdx, LinksDataGroup,
     MainEntranceCondition, Map, NodeId, NotableId, Physics, Requirement, RoomGeometryRoomIdx,
-    RoomId, SparkPosition, StartLocation, TemporaryBlueDirection, VertexId, VertexKey,
+    RoomId, SparkPosition, StartLocation, TechId, TemporaryBlueDirection, VertexId, VertexKey,
+    TECH_ID_CAN_ARTIFICIAL_MORPH, TECH_ID_CAN_DISABLE_EQUIPMENT, TECH_ID_CAN_ENTER_G_MODE,
+    TECH_ID_CAN_ENTER_G_MODE_IMMOBILE, TECH_ID_CAN_ENTER_R_MODE, TECH_ID_CAN_GRAPPLE_TELEPORT,
+    TECH_ID_CAN_MOCKBALL, TECH_ID_CAN_MOONFALL, TECH_ID_CAN_RIGHT_SIDE_DOOR_STUCK,
+    TECH_ID_CAN_RIGHT_SIDE_DOOR_STUCK_FROM_WATER, TECH_ID_CAN_SPEEDBALL,
+    TECH_ID_CAN_SPRING_BALL_BOUNCE, TECH_ID_CAN_STATIONARY_SPIN_JUMP,
+    TECH_ID_CAN_STUTTER_WATER_SHINECHARGE, TECH_ID_CAN_TEMPORARY_BLUE,
 };
 use maprando_logic::{GlobalState, Inventory, LocalState};
 use rand::SeedableRng;
@@ -223,7 +229,7 @@ pub struct ItemPriorityGroup {
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct DifficultyConfig {
     pub name: Option<String>,
-    pub tech: Vec<String>,
+    pub tech: Vec<TechId>,
     pub notables: Vec<(RoomId, NotableId)>,
     pub shine_charge_tiles: f32,
     pub heated_shine_charge_tiles: f32,
@@ -553,9 +559,8 @@ impl<'a> Preprocessor<'a> {
                 let exit_with_shinecharge = self.game_data.does_leave_shinecharged(exit_condition);
                 let enter_with_shinecharge =
                     self.game_data.does_come_in_shinecharged(entrance_condition);
-                let carry_shinecharge = exit_with_shinecharge || enter_with_shinecharge;
 
-                // if (src_room_id, src_node_id) == (155, 5) {
+                // if (dst_room_id, dst_node_id) == (66, 6) {
                 //     println!(
                 //         "({}, {}, {:?}) -> ({}, {}, {:?}): {:?}",
                 //         src_room_id,
@@ -572,8 +577,9 @@ impl<'a> Preprocessor<'a> {
                         from_vertex_id: *src_vertex_id,
                         to_vertex_id: *dst_vertex_id,
                         requirement: req,
-                        start_with_shinecharge: carry_shinecharge,
-                        end_with_shinecharge: carry_shinecharge,
+                        start_with_shinecharge: exit_with_shinecharge,
+                        end_with_shinecharge: enter_with_shinecharge,
+                        strat_id: None,
                         strat_name: "Base (Cross Room)".to_string(),
                         strat_notes: vec![],
                     });
@@ -624,6 +630,17 @@ impl<'a> Preprocessor<'a> {
                 &mut door_links,
             )
         }
+
+        // for link in &door_links {
+        //     let from_vertex_id = link.from_vertex_id;
+        //     let from_vertex_key = &self.game_data.vertex_isv.keys[from_vertex_id];
+        //     let to_vertex_id = link.to_vertex_id;
+        //     let to_vertex_key = &self.game_data.vertex_isv.keys[to_vertex_id];
+        //     if (to_vertex_key.room_id, to_vertex_key.node_id) == (66, 3) && from_vertex_key.room_id != 66 {
+        //         println!("From: {:?}\nTo: {:?}\nLink: {:?}\n", from_vertex_key, to_vertex_key, link);
+        //     }
+        // }
+
         door_links
     }
 
@@ -862,7 +879,7 @@ impl<'a> Preprocessor<'a> {
                 }
                 if speed_booster == Some(false) {
                     reqs.push(Requirement::Tech(
-                        self.game_data.tech_isv.index_by_key["canDisableEquipment"],
+                        self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_DISABLE_EQUIPMENT],
                     ));
                 }
                 if *physics != Some(Physics::Air) {
@@ -920,7 +937,7 @@ impl<'a> Preprocessor<'a> {
                 }
                 if speed_booster == Some(false) {
                     reqs.push(Requirement::Tech(
-                        self.game_data.tech_isv.index_by_key["canDisableEquipment"],
+                        self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_DISABLE_EQUIPMENT],
                     ));
                 }
                 Some(Requirement::make_and(reqs))
@@ -1172,7 +1189,7 @@ impl<'a> Preprocessor<'a> {
                 }
 
                 let mut reqs: Vec<Requirement> = vec![Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canSpeedball"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_SPEEDBALL],
                 )];
                 let combined_runway_length = effective_length + runway_length;
                 reqs.push(Requirement::SpeedBall {
@@ -1392,7 +1409,7 @@ impl<'a> Preprocessor<'a> {
                     return None;
                 }
                 Some(Requirement::make_and(vec![
-                    Requirement::Tech(self.game_data.tech_isv.index_by_key["canMockball"]),
+                    Requirement::Tech(self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL]),
                     Requirement::Item(Item::Morph as ItemId),
                 ]))
             }
@@ -1420,7 +1437,7 @@ impl<'a> Preprocessor<'a> {
                     reqs.push(Requirement::HeatFrames(heat_frames));
                 }
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canMockball"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL],
                 ));
                 reqs.push(Requirement::Item(Item::Morph as ItemId));
                 Some(Requirement::make_and(reqs))
@@ -1463,10 +1480,10 @@ impl<'a> Preprocessor<'a> {
                 }
                 let mut reqs: Vec<Requirement> = vec![];
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canMockball"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL],
                 ));
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canSpringBallBounce"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_SPRING_BALL_BOUNCE],
                 ));
                 reqs.push(Requirement::Item(Item::Morph as ItemId));
                 reqs.push(Requirement::Item(Item::SpringBall as ItemId));
@@ -1502,11 +1519,11 @@ impl<'a> Preprocessor<'a> {
                     || exit_movement_type == BounceMovementType::Controlled
                 {
                     reqs.push(Requirement::Tech(
-                        self.game_data.tech_isv.index_by_key["canMockball"],
+                        self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL],
                     ));
                 }
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canSpringBallBounce"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_SPRING_BALL_BOUNCE],
                 ));
                 reqs.push(Requirement::Item(Item::Morph as ItemId));
                 reqs.push(Requirement::Item(Item::SpringBall as ItemId));
@@ -1536,11 +1553,11 @@ impl<'a> Preprocessor<'a> {
                 }
                 if exit_movement_type == BounceMovementType::Controlled {
                     reqs.push(Requirement::Tech(
-                        self.game_data.tech_isv.index_by_key["canMockball"],
+                        self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL],
                     ));
                 }
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canSpringBallBounce"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_SPRING_BALL_BOUNCE],
                 ));
                 reqs.push(Requirement::Item(Item::Morph as ItemId));
                 reqs.push(Requirement::Item(Item::SpringBall as ItemId));
@@ -1593,10 +1610,10 @@ impl<'a> Preprocessor<'a> {
                 }
 
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canMockball"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL],
                 ));
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canSpringBallBounce"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_SPRING_BALL_BOUNCE],
                 ));
                 reqs.push(Requirement::Item(Item::SpeedBooster as ItemId));
                 reqs.push(Requirement::Item(Item::Morph as ItemId));
@@ -1644,11 +1661,11 @@ impl<'a> Preprocessor<'a> {
                     || entrance_movement_type == BounceMovementType::Controlled
                 {
                     reqs.push(Requirement::Tech(
-                        self.game_data.tech_isv.index_by_key["canMockball"],
+                        self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL],
                     ));
                 }
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canSpringBallBounce"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_SPRING_BALL_BOUNCE],
                 ));
                 reqs.push(Requirement::Item(Item::SpeedBooster as ItemId));
                 reqs.push(Requirement::Item(Item::Morph as ItemId));
@@ -1690,11 +1707,11 @@ impl<'a> Preprocessor<'a> {
                 }
                 if entrance_movement_type == BounceMovementType::Controlled {
                     reqs.push(Requirement::Tech(
-                        self.game_data.tech_isv.index_by_key["canMockball"],
+                        self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOCKBALL],
                     ));
                 }
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canSpringBallBounce"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_SPRING_BALL_BOUNCE],
                 ));
                 reqs.push(Requirement::Item(Item::SpeedBooster as ItemId));
                 reqs.push(Requirement::Item(Item::Morph as ItemId));
@@ -1802,7 +1819,7 @@ impl<'a> Preprocessor<'a> {
                 }
                 let mut reqs: Vec<Requirement> = vec![];
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canStutterWaterShineCharge"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_STUTTER_WATER_SHINECHARGE],
                 ));
                 reqs.push(Requirement::Item(Item::SpeedBooster as ItemId));
                 if *heated {
@@ -1884,7 +1901,7 @@ impl<'a> Preprocessor<'a> {
                 }
                 let mut reqs: Vec<Requirement> = vec![];
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canTemporaryBlue"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_TEMPORARY_BLUE],
                 ));
                 Some(Requirement::make_and(reqs))
             }
@@ -1897,7 +1914,7 @@ impl<'a> Preprocessor<'a> {
                 let effective_length = effective_length.get();
                 let mut reqs: Vec<Requirement> = vec![];
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canTemporaryBlue"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_TEMPORARY_BLUE],
                 ));
                 reqs.push(Requirement::make_shinecharge(effective_length, *heated));
                 if *physics != Some(Physics::Air) {
@@ -1980,18 +1997,18 @@ impl<'a> Preprocessor<'a> {
                 }
                 let mut reqs: Vec<Requirement> = vec![];
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canStationarySpinJump"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_STATIONARY_SPIN_JUMP],
                 ));
                 if door_orientation == DoorOrientation::Right {
                     reqs.push(Requirement::Tech(
-                        self.game_data.tech_isv.index_by_key["canRightSideDoorStuck"],
+                        self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_RIGHT_SIDE_DOOR_STUCK],
                     ));
                     if *physics != Some(Physics::Air) {
                         reqs.push(Requirement::Or(vec![
                             Requirement::Item(Item::Gravity as ItemId),
                             Requirement::Tech(
                                 self.game_data.tech_isv.index_by_key
-                                    ["canRightSideDoorStuckFromWater"],
+                                    [&TECH_ID_CAN_RIGHT_SIDE_DOOR_STUCK_FROM_WATER],
                             ),
                         ]));
                     }
@@ -2020,7 +2037,7 @@ impl<'a> Preprocessor<'a> {
             ExitCondition::LeaveWithGModeSetup { .. } => {
                 let mut reqs: Vec<Requirement> = vec![];
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canEnterRMode"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_ENTER_R_MODE],
                 ));
                 reqs.push(Requirement::Item(Item::XRayScope as ItemId));
                 reqs.push(Requirement::ReserveTrigger {
@@ -2069,12 +2086,12 @@ impl<'a> Preprocessor<'a> {
                 }
                 let mut reqs: Vec<Requirement> = vec![];
                 reqs.push(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canEnterGMode"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_ENTER_G_MODE],
                 ));
                 if entrance_morphed {
                     reqs.push(Requirement::Or(vec![
                         Requirement::Tech(
-                            self.game_data.tech_isv.index_by_key["canArtificialMorph"],
+                            self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_ARTIFICIAL_MORPH],
                         ),
                         Requirement::Item(Item::Morph as ItemId),
                     ]));
@@ -2094,7 +2111,8 @@ impl<'a> Preprocessor<'a> {
                     for (regain_mobility_link, _) in regain_mobility_vec {
                         immobile_req_or_vec.push(Requirement::make_and(vec![
                             Requirement::Tech(
-                                self.game_data.tech_isv.index_by_key["canEnterGModeImmobile"],
+                                self.game_data.tech_isv.index_by_key
+                                    [&TECH_ID_CAN_ENTER_G_MODE_IMMOBILE],
                             ),
                             Requirement::ReserveTrigger {
                                 min_reserve_energy: 1,
@@ -2149,7 +2167,7 @@ impl<'a> Preprocessor<'a> {
                     return None;
                 }
                 return Some(Requirement::Tech(
-                    self.game_data.tech_isv.index_by_key["canMoonfall"],
+                    self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_MOONFALL],
                 ));
             }
             _ => None,
@@ -2208,7 +2226,7 @@ impl<'a> Preprocessor<'a> {
                 {
                     Some(Requirement::make_and(vec![
                         Requirement::Tech(
-                            self.game_data.tech_isv.index_by_key["canGrappleTeleport"],
+                            self.game_data.tech_isv.index_by_key[&TECH_ID_CAN_GRAPPLE_TELEPORT],
                         ),
                         Requirement::Item(self.game_data.item_isv.index_by_key["Grapple"]),
                     ]))
@@ -2579,7 +2597,7 @@ pub fn filter_links(
 }
 
 fn get_tech_vec(game_data: &GameData, difficulty: &DifficultyConfig) -> Vec<bool> {
-    let tech_set: HashSet<String> = difficulty.tech.iter().map(|x| x.clone()).collect();
+    let tech_set: HashSet<TechId> = difficulty.tech.iter().map(|x| x.clone()).collect();
     game_data
         .tech_isv
         .keys
@@ -3741,7 +3759,9 @@ impl<'r> Randomizer<'r> {
                 let item_vertex_info = self.get_vertex_info_by_id(r, n);
                 let location = SpoilerLocation {
                     area: item_vertex_info.area_name,
+                    room_id: item_vertex_info.room_id,
                     room: item_vertex_info.room_name,
+                    node_id: item_vertex_info.node_id,
                     node: item_vertex_info.node_name,
                     coords: item_vertex_info.room_coords,
                 };
@@ -3759,6 +3779,7 @@ impl<'r> Randomizer<'r> {
             .enumerate()
             .zip(self.game_data.room_geometry.iter())
             .map(|((room_idx, c), g)| {
+                let room_id = self.game_data.room_id_by_ptr[&g.rom_address];
                 let room = g.name.clone();
                 let short_name = strip_name(&room);
                 let map = if room_idx == self.game_data.toilet_room_idx {
@@ -3784,6 +3805,7 @@ impl<'r> Randomizer<'r> {
                     }
                 }
                 SpoilerRoomLoc {
+                    room_id,
                     room,
                     short_name,
                     map,
@@ -4081,6 +4103,7 @@ impl<'r> Randomizer<'r> {
             .iter()
             .zip(self.game_data.room_geometry.iter())
             .map(|(c, g)| {
+                let room_id = self.game_data.room_id_by_ptr[&g.rom_address];
                 let room = g.name.clone();
                 let short_name = strip_name(&room);
                 let height = g.map.len();
@@ -4088,6 +4111,7 @@ impl<'r> Randomizer<'r> {
                 let map_reachable_step: Vec<Vec<u8>> = vec![vec![255; width]; height];
                 let map_bireachable_step: Vec<Vec<u8>> = vec![vec![255; width]; height];
                 SpoilerRoomLoc {
+                    room_id,
                     room,
                     short_name,
                     map: g.map.clone(),
@@ -4341,6 +4365,7 @@ pub struct SpoilerRouteEntry {
     area: String,
     room: String,
     node: String,
+    room_id: usize,
     short_room: String,
     from_node_id: usize,
     to_node_id: usize,
@@ -4348,7 +4373,7 @@ pub struct SpoilerRouteEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     coords: Option<(usize, usize)>,
     strat_name: String,
-    short_strat_name: String,
+    strat_id: Option<usize>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     strat_notes: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -4368,7 +4393,9 @@ pub struct SpoilerRouteEntry {
 #[derive(Serialize, Deserialize)]
 pub struct SpoilerLocation {
     pub area: String,
+    pub room_id: usize,
     pub room: String,
+    pub node_id: usize,
     pub node: String,
     pub coords: (usize, usize),
 }
@@ -4426,6 +4453,7 @@ pub struct SpoilerItemLoc {
 #[derive(Serialize, Deserialize)]
 pub struct SpoilerRoomLoc {
     // here temporarily, most likely, since these can be baked into the web UI
+    room_id: usize,
     room: String,
     short_name: String,
     map: Vec<Vec<u8>>,
@@ -4605,12 +4633,13 @@ impl<'a> Randomizer<'a> {
                     short_room: strip_name(&to_vertex_info.room_name),
                     room: to_vertex_info.room_name,
                     node: to_vertex_info.node_name,
+                    room_id: to_vertex_info.room_id,
                     from_node_id: from_vertex_info.node_id,
                     to_node_id: to_vertex_info.node_id,
+                    strat_id: link.strat_id,
                     obstacles_bitmask: to_obstacles_mask,
                     coords,
                     strat_name: link.strat_name.clone(),
-                    short_strat_name: strip_name(&link.strat_name),
                     strat_notes: link.strat_notes.clone(),
                     energy_used: if last {
                         Some(new_local_state.energy_used)
@@ -4742,15 +4771,19 @@ impl<'a> Randomizer<'a> {
         item_vertex_id: usize,
         item: Item,
         tier: Option<usize>,
+        item_location_idx: usize,
     ) -> SpoilerItemDetails {
         let (obtain_route, return_route) =
             self.get_spoiler_route_birectional(state, item_vertex_id);
-        let item_vertex_info = self.get_vertex_info(item_vertex_id);
+        let (room_id, node_id) = self.game_data.item_locations[item_location_idx];
+        let item_vertex_info = self.get_vertex_info_by_id(room_id, node_id);
         SpoilerItemDetails {
             item: Item::VARIANTS[item as usize].to_string(),
             location: SpoilerLocation {
                 area: item_vertex_info.area_name,
+                room_id: item_vertex_info.room_id,
                 room: item_vertex_info.room_name,
+                node_id: item_vertex_info.node_id,
                 node: item_vertex_info.node_name,
                 coords: item_vertex_info.room_coords,
             },
@@ -4767,15 +4800,19 @@ impl<'a> Randomizer<'a> {
     fn get_spoiler_item_summary(
         &self,
         _state: &RandomizationState,
-        item_vertex_id: usize,
+        _item_vertex_id: usize,
         item: Item,
+        item_location_idx: usize,
     ) -> SpoilerItemSummary {
-        let item_vertex_info = self.get_vertex_info(item_vertex_id);
+        let (room_id, node_id) = self.game_data.item_locations[item_location_idx];
+        let item_vertex_info = self.get_vertex_info_by_id(room_id, node_id);
         SpoilerItemSummary {
             item: Item::VARIANTS[item as usize].to_string(),
             location: SpoilerLocation {
                 area: item_vertex_info.area_name,
+                room_id: item_vertex_info.room_id,
                 room: item_vertex_info.room_name,
+                node_id: item_vertex_info.node_id,
                 node: item_vertex_info.node_name,
                 coords: item_vertex_info.room_coords,
             },
@@ -4795,7 +4832,9 @@ impl<'a> Randomizer<'a> {
             flag: self.game_data.flag_isv.keys[flag_id].to_string(),
             location: SpoilerLocation {
                 area: flag_vertex_info.area_name,
+                room_id: flag_vertex_info.room_id,
                 room: flag_vertex_info.room_name,
+                node_id: flag_vertex_info.node_id,
                 node: flag_vertex_info.node_name,
                 coords: flag_vertex_info.room_coords,
             },
@@ -4817,7 +4856,9 @@ impl<'a> Randomizer<'a> {
             flag: self.game_data.flag_isv.keys[flag_id].to_string(),
             location: SpoilerLocation {
                 area: flag_vertex_info.area_name,
+                room_id: flag_vertex_info.room_id,
                 room: flag_vertex_info.room_name,
+                node_id: flag_vertex_info.node_id,
                 node: flag_vertex_info.node_name,
                 coords: flag_vertex_info.room_coords,
             },
@@ -4867,7 +4908,9 @@ impl<'a> Randomizer<'a> {
             ),
             location: SpoilerLocation {
                 area: door_vertex_info.area_name,
+                room_id: door_vertex_info.room_id,
                 room: door_vertex_info.room_name,
+                node_id: door_vertex_info.node_id,
                 node: door_vertex_info.node_name,
                 coords: door_vertex_info.room_coords,
             },
@@ -4907,7 +4950,9 @@ impl<'a> Randomizer<'a> {
             ),
             location: SpoilerLocation {
                 area: door_vertex_info.area_name,
+                room_id: door_vertex_info.room_id,
                 room: door_vertex_info.room_name,
+                node_id: door_vertex_info.node_id,
                 node: door_vertex_info.node_name,
                 coords: door_vertex_info.room_coords,
             },
@@ -4934,7 +4979,7 @@ impl<'a> Randomizer<'a> {
                     let item_vertex_id =
                         state.item_location_state[i].bireachable_vertex_id.unwrap();
                     let tier = new_state.item_location_state[i].difficulty_tier;
-                    items.push(self.get_spoiler_item_details(state, item_vertex_id, item, tier));
+                    items.push(self.get_spoiler_item_details(state, item_vertex_id, item, tier, i));
                 }
             }
         }
@@ -4966,7 +5011,7 @@ impl<'a> Randomizer<'a> {
                 {
                     let item_vertex_id =
                         state.item_location_state[i].bireachable_vertex_id.unwrap();
-                    items.push(self.get_spoiler_item_summary(state, item_vertex_id, item));
+                    items.push(self.get_spoiler_item_summary(state, item_vertex_id, item, i));
                 }
             }
         }

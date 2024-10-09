@@ -442,21 +442,6 @@ impl<'a> MapPatcher<'a> {
             // but other flips do not.
             return Ok(());
         }
-        let beam_edges = [
-            Edge::ChargeDoor,
-            Edge::IceDoor,
-            Edge::WaveDoor,
-            Edge::SpazerDoor,
-            Edge::PlasmaDoor,
-        ];
-        if beam_edges.contains(&tile.left)
-            || beam_edges.contains(&tile.right)
-            || beam_edges.contains(&tile.up)
-            || beam_edges.contains(&tile.down)
-        {
-            // For beam doors, again 180 degree rotation works but not other flips.
-            return Ok(());
-        }
         self.index_basic_tile_case(
             BasicTile {
                 left: tile.right,
@@ -2776,11 +2761,11 @@ impl<'a> MapPatcher<'a> {
                     .write_u16(base_ptr + offset, (tile1 | 0x0C00) as isize)?;
             } else if self.randomization.difficulty.item_dot_change == ItemDotChange::Fade {
                 if interior == Interior::MajorItem
-                    || (interior == Interior::AmmoItem
-                        && orig_basic_tile.interior != Interior::MediumItem)
                     || (interior == Interior::MediumItem
-                        && orig_basic_tile.interior != Interior::MajorItem
-                        && orig_basic_tile.interior != Interior::AmmoItem)
+                        && orig_basic_tile.interior != Interior::MajorItem)
+                    || (interior == Interior::AmmoItem
+                        && orig_basic_tile.interior != Interior::MediumItem
+                        && orig_basic_tile.interior != Interior::MajorItem)
                     || (interior == Interior::Item
                         && (orig_basic_tile.interior == Interior::Empty
                             || orig_basic_tile.interior == Interior::Item))

@@ -20,6 +20,7 @@ use strum_macros::{EnumString, EnumVariantNames};
 
 pub const TECH_ID_CAN_WALLJUMP: TechId = 76;
 pub const TECH_ID_CAN_HEAT_RUN: TechId = 6;
+pub const TECH_ID_CAN_MID_AIR_MORPH: TechId = 32;
 pub const TECH_ID_CAN_SPEEDBALL: TechId = 42;
 pub const TECH_ID_CAN_MOCKBALL: TechId = 41;
 pub const TECH_ID_CAN_MANAGE_RESERVES: TechId = 18;
@@ -430,6 +431,7 @@ pub struct EscapeTimingDoor {
 #[serde(rename_all = "snake_case")]
 pub enum EscapeConditionRequirement {
     EnemiesCleared,
+    CanMidAirMorph,
     CanUsePowerBombs,
     CanMoonfall,
     CanReverseGate,
@@ -1078,6 +1080,7 @@ pub struct GameData {
     pub tech_json_map: HashMap<TechId, JsonValue>,
     pub tech_names: HashMap<TechId, String>,
     pub tech_id_by_name: HashMap<String, TechId>,
+    pub notable_id_by_name: HashMap<(RoomId, String), NotableId>,
     pub helper_json_map: HashMap<String, JsonValue>,
     tech_requirement: HashMap<(TechId, bool), Option<Requirement>>,
     pub helpers: HashMap<String, Option<Requirement>>,
@@ -2453,21 +2456,63 @@ impl GameData {
             }
         }
 
-        // Override the MB2 boss fight requirements
-        let mut found = false;
-        for node_json in room_json["nodes"].members_mut() {
-            if node_json["id"].as_i32().unwrap() == 4 {
-                node_json["locks"][0]["unlockStrats"] = json::array![{
-                    "name": "Base",
-                    "notable": false,
-                    "requires": [
-                        {"enemyKill": {"enemies": [["Mother Brain 2"]]}}
-                    ]
-                }];
-                found = true;
+        for x in room_json["strats"].members_mut() {
+            if x["id"].as_i32() == Some(34) {
+                // Mother Brain 2 and 3 Fight: override requirements, removing rainbow beam damage requirement,
+                // since we already handle this inside the enemyKill requirement
+                x["requires"] = json::array![
+                    {"enemyKill": {"enemies": [["Mother Brain 2"]]}}
+                ];
             }
         }
-        assert!(found);
+
+        let mut new_strats: Vec<JsonValue> = vec![];
+        for x in room_json["strats"].members_mut() {
+            if x["id"].as_i32() == Some(8) {
+                // Leave With Runway: shorten the runway length slightly: the objective barrier creates a closed end
+                x["exitCondition"]["leaveWithRunway"]["openEnd"] = JsonValue::Number(0.into());
+
+                let obj_conditions = [
+                    "i_Objective1Complete",
+                    "i_Objective2Complete",
+                    "i_Objective3Complete",
+                    "i_Objective4Complete",
+                ];
+                for num_objectives_complete in 1..=4 {
+                    let mut strat = x.clone();
+                    let runway_length = 5 + num_objectives_complete;
+                    strat["exitCondition"]["leaveWithRunway"]["length"] =
+                        JsonValue::Number(runway_length.into());
+                    if num_objectives_complete == 4 {
+                        strat["exitCondition"]["leaveWithRunway"]["openEnd"] =
+                            JsonValue::Number(1.into());
+                    }
+
+                    strat["id"] = JsonValue::Number((10000 + num_objectives_complete).into());
+                    if num_objectives_complete == 1 {
+                        strat["name"] = JsonValue::String(format!(
+                            "{}, 1 Objective Complete",
+                            x["name"].as_str().unwrap()
+                        ));
+                    } else {
+                        strat["name"] = JsonValue::String(format!(
+                            "{}, {} Objectives Complete",
+                            x["name"].as_str().unwrap(),
+                            num_objectives_complete
+                        ));
+                    }
+                    for i in 0..num_objectives_complete {
+                        strat["requires"]
+                            .push(JsonValue::String(obj_conditions[i].to_string()))
+                            .unwrap();
+                    }
+                    new_strats.push(strat);
+                }
+            }
+        }
+        for strat in new_strats {
+            room_json["strats"].push(strat).unwrap();
+        }
     }
 
     fn override_bowling_alley(&mut self, room_json: &mut JsonValue) {
@@ -3300,6 +3345,7 @@ impl GameData {
         let from_node_id = strat_json["link"][0].as_usize().unwrap();
         let to_node_id = strat_json["link"][1].as_usize().unwrap();
         let strat_id = strat_json["id"].as_usize();
+
         // TODO: deal with heated room more explicitly for Volcano Room, instead of guessing based on node ID:
         let from_heated = self.get_room_heated(room_json, from_node_id)?;
         let to_node_json = self.node_json_map[&(room_id, to_node_id)].clone();
@@ -3719,6 +3765,10 @@ impl GameData {
             let notable_idx2 = self.notable_isv.add(&(room_id, notable_id));
             assert_eq!(notable_idx, notable_idx2);
             self.notable_data.push(notable_data);
+            self.notable_id_by_name
+                .insert((room_id, notable_name.clone()), notable_id);
+            // TODO: the room-local `notable_map` could probably be eliminated, in favor of just using the global
+            // one (`notable_id_by_name``)
             notable_map.insert(notable_name, notable_idx);
         }
 

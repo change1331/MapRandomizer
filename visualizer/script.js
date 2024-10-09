@@ -307,14 +307,19 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 	
 	
 	let scale = 1.0
-	document.getElementById("zoomers").onwheel = ev => {
+	let page_x = 0;
+	let page_y = 0;
+	function trans() {
+		scale = Math.min(Math.max(0.25, scale), 4);
+
+		document.getElementById("zoomers").style.transform =
+				`scale(${scale}) translate(${page_x/scale}px, ${page_y/scale}px)`;
+	}
+
+	document.getElementById("map").onwheel = ev => {
 		scale += ev.deltaY * -0.001;
 
-		// Restrict scale
-		scale = Math.min(Math.max(0.125, scale), 4);
-
-		// Apply scale transform
-		document.getElementById("zoomers").style.transform = `scale(${scale})`;
+		trans();
 	}
 	
 	let el = document.getElementById("room-info");
@@ -323,7 +328,8 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 	document.getElementById("map").ondragstart = ev => {
 		return false;
 	}
-	document.body.onmousedown = ev => {
+
+	document.getElementById("map").onmousedown = ev => {
 		dragging = true;
 		dragged = false;
 	}
@@ -334,15 +340,13 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 		dragging = false;
 		el.classList.add("hidden")
 	}
-	let page_x = 0;
-	let page_y = 0;
+
 	document.body.onmousemove = ev => {
 		if (dragging) {
 			dragged = true;
-			page_x += ev.movementX
+			page_x += ev.movementX;
 			page_y += ev.movementY;
-			document.body.style.setProperty("--tx", page_x + "px");
-			document.body.style.setProperty("--ty", page_y + "px");
+			trans();
 		} else {
 			let x = ((ev.offsetX / 24) | 0) - 1;
 			let y = ((ev.offsetY / 24) | 0) - 1;

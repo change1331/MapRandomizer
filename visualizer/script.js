@@ -550,7 +550,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 					let flagSpan0 = document.createElement("span");
 					flagSpan0.innerText = "Relevant flags: ";
 					flagContainer.appendChild(flagSpan0);
-					for (f in k.relevant_flags) {
+					for (let f in k.relevant_flags) {
 						if (f != 0) {
 							let flagSeparator = document.createElement("span");
 							flagSeparator.innerText = ", ";
@@ -618,7 +618,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 					let flagSpan0 = document.createElement("span");
 					flagSpan0.innerText = "Relevant flags: ";
 					flagContainer.appendChild(flagSpan0);
-					for (f in k.relevant_flags) {
+					for (let f in k.relevant_flags) {
 						if (f != 0) {
 							let flagSeparator = document.createElement("span");
 							flagSeparator.innerText = ", ";

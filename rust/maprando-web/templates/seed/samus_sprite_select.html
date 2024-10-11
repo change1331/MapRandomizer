@@ -43,7 +43,22 @@
             opacity: 0;
         }
         </style>
-
+        <div class="card-header sprite-list mt-2">Random</div>
+        <div class="form-group row m-0 p-0 sprite-list">
+            <div class="d-flex align-content-start flex-wrap m-0 p-0">
+                <div id="randomButton" class="border p-2 m-0" style="width:150px" onclick="randomSprite()" data-name="Random" data-display-name="Random" data-bs-dismiss="modal">
+                    <div class="row">
+                        <div class="text-center">
+                            <img id="questionSpr" class="mx-auto png-sprite" loading="lazy" src="/static/random.png" style="image-rendering: pixelated;width:120px;height:168px">
+                            <img id="randomSpr" class="mx-auto gif-sprite" loading="lazy" src="/static/random.png" style="image-rendering: pixelated;width:120px;height:168px">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <p id="randomtxt" class="text-center sprite-text">Random</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <input type="hidden" id="samusSprite" name="samus_sprite" value="samus">
         {% for category in samus_sprite_categories %}
             <div class="card-header sprite-list mt-2">{{+ category.category_name }}</div>

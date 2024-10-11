@@ -27,7 +27,11 @@ function selectSprite(el) {
     // Set the form field:
     document.getElementById("samusSprite").value = el.getAttribute("data-name");
     changeSamusSprite();
-};
+}
+function randomSprite() {
+    var sprites = document.getElementsByClassName("sprite")
+    selectSprite(sprites[Math.floor(Math.random()* sprites.length)]);
+}
 function updateEnergyTankColor() {
     var selectedETankSVG = document.getElementById("selectedETankSVG");
     var selectedETankColor = document.getElementById("etankColor").value;

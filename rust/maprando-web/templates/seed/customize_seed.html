@@ -190,6 +190,37 @@ window.onload = (event) => {
   updateEnergyTankColor();
   roomThemingChanged();
 };
+
+let hovering = false;
+document.getElementById("randomButton").onmouseenter = ev => {
+    hovering = true;
+    changeRandomSprite();
+}
+document.getElementById("randomButton").onmouseleave = ev => {
+    oobRandom();
+}
+document.body.onmouseleave = ev => {
+    oobRandom();
+}
+function oobRandom() {
+    hovering = false;
+    document.getElementById("randomtxt").innerHTML = "Random";
+    document.getElementById("questionSpr").style.setProperty("opacity",  "100");
+    document.getElementById("randomSpr").style.setProperty("opacity", "0");
+}
+function changeRandomSprite() {
+    if (!hovering)
+        return;
+
+    var sprites = document.getElementsByClassName("sprite");
+    var sprite = sprites[Math.floor(Math.random()* sprites.length)];
+    document.getElementById("randomtxt").innerHTML = sprite.getAttribute("data-display-name");
+    document.getElementById("questionSpr").style.setProperty("opacity",  "0");
+    document.getElementById("randomSpr").style.setProperty("opacity", "100");
+    document.getElementById("randomSpr").src = "/static/samus_sprites/" + sprite.getAttribute("data-name") + ".png";
+
+    setTimeout(changeRandomSprite, Math.random()*50 + 50);
+}
 </script>
 
 </body>

@@ -152,6 +152,8 @@ let roomFlags = {
 	"Blue Brinstar Energy Tank Room": ["f_ZebesAwake", "Awaken Zebes"],
 };
 
+
+
 function lookupOffset(room, node) {
 	key = room + ": " + node
 	return offsets[key];
@@ -269,8 +271,11 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 		update_selected();
 	}
 	show_overview();
+	const maxSC = 1.5, minSC = 0.25;
+	var scale = 1, page_x = 0, page_y = 0;
 	window.gen_obscurity = (sl) => {
 		step_limit = sl;
+		
 		update_selected();
 
 		// generate obscurity overlay
@@ -280,17 +285,24 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 
 		if (step_limit === null) {
 			ctx.putImageData(img, 0, 0);
+			zmsq(0,72,0,72);
 			return;
 		}
+		
 		for (let i = 0; i < 72 * 72; i++) {
 			img.data[i * 4 + 3] = 0xD8; // mostly opaque
 		}
+		var minx = 74, maxx = -1, miny = 74, maxy = -1;
 		for (let v of c.all_rooms) {
 			for (let y = 0; y < v.map.length; y++) {
 				for (let x = 0; x < v.map[y].length; x++) {
 					if (v.map[y][x] == 1) {
 						let addr = (v.coords[1] + y) * 72 + (v.coords[0] + x);
 						if (v.map_bireachable_step[y][x] < step_limit) {
+							minx = Math.min(minx, v.coords[0] + x);
+							maxx = Math.max(maxx, v.coords[0] + x);
+							miny = Math.min(miny, v.coords[1] + y);
+							maxy = Math.max(maxy, v.coords[1] + y);
 							img.data[addr * 4 + 3] = 0x00; // transparent
 						} else if (v.map_reachable_step[y][x] < step_limit) {
 							img.data[addr * 4 + 3] = 0x7F; // semiopaque
@@ -301,31 +313,56 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 				}
 			}
 		}
+
+		zmsq(minx, maxx, miny, maxy)
+
 		ctx.putImageData(img, 0, 0);
 	}
 	gen_obscurity(null);
+	
 	let el = document.getElementById("room-info");
 	let dragged = false, dragging = false;
-	var scale = 1, page_x = 0, page_y = 0;
-	let m = document.getElementById("map");
-	m.ondragstart = ev => {
+
+	document.getElementById("map").onwheel = ev => {
+		var s = scale + ev.deltaY * -0.001;
+		zm(ev.x, ev.y, s);
+	}
+	document.getElementById("map").ondragstart = ev => {
 		return false;
 	}
-	m.ondragstart = ev => {
-		return false;
+
+	function zmsq(minx, maxx, miny, maxy) {
+		// give margins
+		minx-=4;
+		miny-=4;
+		maxx+=4;
+		maxy+=4;
+
+		var maxlenx = maxx-minx, maxleny= maxy-miny;
+
+		// scale with browser bounds
+		var scx = document.documentElement.clientWidth/1776*72/maxlenx;
+		var scy = document.documentElement.clientHeight/1776*72/maxleny;
+
+		// zoom out as far as possible
+		sc = Math.min(Math.max(Math.min(scx,scy), minSC), maxSC);
+
+		var origx =  minx*12*sc;
+		var origy =  miny*24*sc;
+
+		page_x = -origx;
+		page_y = -origy;
+
+		scale = sc;
+		transfo();
 	}
-	m.onmousedown = ev => {
-		dragging = true;
-	}
-	m.onwheel = ev => {
+	function zm(x, y, sc) {
 		const scaleOld = scale;
 		var z = document.getElementById("zoom");
+		scale = Math.min(Math.max(minSC, sc), maxSC);
 
-		scale += ev.deltaY * -0.001;
-		scale = Math.min(Math.max(0.25, scale), 100);
-
-		var xorg = ev.x - page_x - z.offsetWidth/2;
-		var yorg = ev.y - page_y - z.offsetHeight/2;
+		var xorg = x - page_x - z.offsetWidth/2;
+		var yorg = y - page_y - z.offsetHeight/2;
 
 		var xnew = xorg / scaleOld;
 		var ynew = yorg / scaleOld;

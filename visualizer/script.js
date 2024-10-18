@@ -273,6 +273,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 	show_overview();
 	const maxSC = 1.5, minSC = 0.25;
 	var scale = 1, page_x = 0, page_y = 0;
+	var first = true;
 	window.gen_obscurity = (sl) => {
 		step_limit = sl;
 		
@@ -285,14 +286,13 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 
 		if (step_limit === null) {
 			ctx.putImageData(img, 0, 0);
-			zmsq(0,72,0,72);
 			return;
 		}
 		
 		for (let i = 0; i < 72 * 72; i++) {
 			img.data[i * 4 + 3] = 0xD8; // mostly opaque
 		}
-		var minx = 74, maxx = -1, miny = 74, maxy = -1;
+		var minx = 73,maxx=-1,miny=73,maxy=-1;
 		for (let v of c.all_rooms) {
 			for (let y = 0; y < v.map.length; y++) {
 				for (let x = 0; x < v.map[y].length; x++) {
@@ -314,11 +314,15 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 			}
 		}
 
-		zmsq(minx, maxx, miny, maxy)
+		if (first)
+		{
+			zmsq(minx, maxx, miny, maxy);
+			first = false;
+		}
 
 		ctx.putImageData(img, 0, 0);
 	}
-	gen_obscurity(null);
+	gen_obscurity(1);
 	
 	let el = document.getElementById("room-info");
 	let dragged = false, dragging = false;
@@ -333,10 +337,10 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 
 	function zmsq(minx, maxx, miny, maxy) {
 		// give margins
-		minx-=4;
-		miny-=4;
-		maxx+=4;
-		maxy+=4;
+		minx-=16;
+		miny-=16;
+		maxx+=16;
+		maxy+=16;
 
 		var maxlenx = maxx-minx, maxleny= maxy-miny;
 
@@ -347,7 +351,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 		// zoom out as far as possible
 		sc = Math.min(Math.max(Math.min(scx,scy), minSC), maxSC);
 
-		var origx =  minx*12*sc;
+		var origx =  minx*24*sc;
 		var origy =  miny*24*sc;
 
 		page_x = -origx;

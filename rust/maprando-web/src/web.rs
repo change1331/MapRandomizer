@@ -11,19 +11,19 @@ use hashbrown::HashMap;
 use maprando::{
     customize::{mosaic::MosaicTheme, samus_sprite::SamusSpriteCategory},
     map_repository::MapRepository,
-    preset::{NotableSetting, Preset, TechSetting},
+    preset::{NotableData, Preset, TechData},
     seed_repository::SeedRepository,
 };
 use maprando_game::GameData;
 use serde::Serialize;
 
-pub const VERSION: usize = 114;
+pub const VERSION: usize = 115;
 
 #[derive(Serialize)]
 pub struct PresetData {
     pub preset: Preset,
-    pub tech_setting: Vec<(TechSetting, bool)>,
-    pub notable_setting: Vec<(NotableSetting, bool)>,
+    pub tech_setting: Vec<(TechData, bool)>,
+    pub notable_setting: Vec<(NotableData, bool)>,
 }
 
 #[derive(Clone)]

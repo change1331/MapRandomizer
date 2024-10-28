@@ -328,8 +328,7 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 	let dragged = false, dragging = false;
 
 	document.getElementById("map").onwheel = ev => {
-		var s = scale + ev.deltaY * -0.001;
-		zm(ev.x, ev.y, s);
+		zm(ev);
 	}
 	document.getElementById("map").ondragstart = ev => {
 		return false;
@@ -360,15 +359,15 @@ fetch(`../spoiler.json`).then(c => c.json()).then(c => {
 		scale = sc;
 		transfo();
 	}
-	function zm(x, y, sc) {
+	function zm(ev) {
 		const scaleOld = scale;
 		var z = document.getElementById("zoom");
 
 		scale *= 1.0 - ev.deltaY * 0.0005;
 		scale = Math.min(Math.max(0.25, scale), 100);
 
-		var xorg = x - page_x - z.offsetWidth/2;
-		var yorg = y - page_y - z.offsetHeight/2;
+		var xorg = ev.x - page_x - z.offsetWidth/2;
+		var yorg = ev.y - page_y - z.offsetHeight/2;
 
 		var xnew = xorg / scaleOld;
 		var ynew = yorg / scaleOld;

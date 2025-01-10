@@ -3,8 +3,8 @@ lorom
 
 !map_station_reveal_type = $90F700  ; 0 = Full reveal,  1 = Partial reveal
 !map_reveal_tile_table = $90FA00  ; must match reference in patch.rs
-!bank_90_freespace_start = $90F702
-!bank_90_freespace_end = $90F800
+!bank_90_freespace_start = $90FC02
+!bank_90_freespace_end = $90FD1B
 
 
 incsrc "constants.asm"
@@ -28,6 +28,21 @@ org $848CA6
     jsl activate_map_station_hook
     nop : nop
 
+; edit map activation checks to ignore 1 bit
+org $829569
+    AND #$00FE
+org $82947C
+    AND #$00FE
+org $84B1A3
+    AND #$00FE
+org $8085AE
+    AND #$00FE
+org $82BB41
+    AND #$00FE
+org $84B1A3
+    AND #$00FE
+
+
 ; Continue marking map tiles revealed/explored even if mini-map is disabled:
 org $90A923
     nop : nop
@@ -40,6 +55,8 @@ org $90AB6D
 ; This will also check if mini-map is disabled, and if so, skip the rest of the mini-map drawing routine.
 org $90A98B
     jmp mark_progress
+
+
 
 org !map_station_reveal_type
     dw $0000  ; default: full reveal
@@ -112,6 +129,21 @@ mark_progress:
 ; When map station is activated, fill all map revealed bits for the area:
 activate_map_station_hook:
     LDA #$0001 : STA $0789   ; run hi-jacked instructions (set map flag)
+
+    LDX $1F5B
+
+    LDA $700158,X
+    ORA #$0001
+    STA $700158,X
+
+    LDA $700B58,X
+    ORA #$0001
+    STA $700B58,X
+    
+    LDA $701558,X
+    ORA #$0001
+    STA $701558,X
+    
 
     phb
     pea $9090

@@ -111,6 +111,7 @@ mark_progress:
 
 ; When map station is activated, fill all map revealed bits for the area:
 activate_map_station_hook:
+    print "pc= ", pc
     LDA #$0001 : STA $0789   ; run hi-jacked instructions (set map flag)
 
     phb

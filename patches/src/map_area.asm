@@ -329,10 +329,27 @@ check_start_select:
     php
     rep #$30
 
+    lda $8F        ; load newly pressed input
+    bit #$2000
+    beq .xyinput      ; if select is not newly pressed, continue as normal
+    lda $702604
+    beq .skip       ; if already used free map skip
+    DEC
+    sta $702604
+
+    ldx $1F5B
+    LDA $7ED908, x
+    ora #$00FF
+    STA $7ED908, x
+
+    JSL $90F770
+    stz !map_switch_direction
+    bra .switch
+.xyinput:
     stz !map_switch_direction
     lda $8F        ; load newly pressed input
-    bit #$6000
-    bne .switch      ; if select/Y (next map) is not newly pressed, continue as normal
+    bit #$4000
+    bne .switch      ; if Y (next map) is not newly pressed, continue as normal
 
     bit #$0040
     beq .skip      ; if X (previous map) is not newly pressed, continue as normal

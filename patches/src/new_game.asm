@@ -161,6 +161,8 @@ startup:
     sta !stat_reloads
     sta !stat_loadbacks
     sta !stat_resets
+    lda #$0001
+    sta !free_map_counter
     ldx #$0020
 .clear_timers:
     sta !stat_pause_time-2, x

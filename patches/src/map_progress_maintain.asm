@@ -3,8 +3,8 @@ lorom
 
 !map_station_reveal_type = $90F700  ; 0 = Full reveal,  1 = Partial reveal
 !map_reveal_tile_table = $90FA00  ; must match reference in patch.rs
-!bank_90_freespace_start = $90F702
-!bank_90_freespace_end = $90F800
+!bank_90_freespace_start = $90FC02
+!bank_90_freespace_end = $90FD38
 
 
 incsrc "constants.asm"
@@ -158,7 +158,21 @@ activate_map_station_hook:
     inx
     dey
     bne .loop
-    rtl
+
+print "pc=", pc
+    lda #$0001
+    ldx $1F5B
+    beq .skipshift
+.shift
+    ASL
+    DEX
+    bne .shift
+.skipshift
+    sta $00
+    lda !maps_full_revealed
+    ora $00
+    sta !maps_full_revealed
+    bra .partreveal
 
 .partial_only_loop:
     lda #$FFFF
@@ -172,6 +186,21 @@ activate_map_station_hook:
     inx
     dey
     bne .partial_only_loop
+
+.partreveal
+    lda #$0001
+    ldx $1F5B
+    beq .skippartshift
+.partshift
+    ASL
+    DEX
+    bne .partshift
+.skippartshift
+    sta $00
+    lda !maps_part_revealed
+    ora $00
+    sta !maps_part_revealed
+
     rtl
 
 hook_mark_tile_above:

@@ -26,3 +26,4 @@ FE68-FE70: Spin lock input bitmask (spin_lock.asm)
 FE70-FE72: Toilet intersecting room pointer
 FE72-FE73: Toilet X position relative to intersecting room
 FE73-FE74: Toilet X position relative to intersecting room
+FE74-FE75: Initial maps revealed bits copied to sram at $702602

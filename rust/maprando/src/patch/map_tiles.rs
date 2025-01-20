@@ -1767,14 +1767,17 @@ impl<'a> MapPatcher<'a> {
         let revealed_addr = snes2pc(0xB5F000);
         let partially_revealed_addr = snes2pc(0xB5F800);
         let area_seen_addr = snes2pc(0xB5F600);
+        let map_revealed_addr = snes2pc(0xB5FE74);
         match self.randomization.settings.other_settings.maps_revealed {
             MapsRevealed::Full => {
+                self.rom.write_u16(map_revealed_addr, 0x3F3F)?;
                 self.rom.write_n(revealed_addr, &vec![0xFF; 0x600])?; // whole map revealed bits: true
                 self.rom
                     .write_n(partially_revealed_addr, &vec![0xFF; 0x600])?; // whole map partially revealed bits: true
                 self.rom.write_u16(area_seen_addr, 0x003F)?; // area seen bits: true (for pause map area switching)
             }
             MapsRevealed::Partial => {
+                self.rom.write_u16(map_revealed_addr, 0x3F)?;
                 self.rom.write_n(revealed_addr, &vec![0; 0x600])?; // whole map revealed bits: false
                 self.rom
                     .write_n(partially_revealed_addr, &vec![0xFF; 0x600])?; // whole map partially revealed bits: true
@@ -1791,6 +1794,7 @@ impl<'a> MapPatcher<'a> {
                 }
             }
             MapsRevealed::No => {
+                self.rom.write_u16(map_revealed_addr, 0x0000)?;
                 self.rom.write_n(revealed_addr, &vec![0; 0x600])?;
                 self.rom.write_n(partially_revealed_addr, &vec![0; 0x600])?;
                 self.rom.write_u16(area_seen_addr, 0x0000)?;

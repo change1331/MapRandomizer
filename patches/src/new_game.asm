@@ -14,6 +14,7 @@ incsrc "constants.asm"
 !GameStartState = $7ED914
 !current_save_slot = $7e0952
 !area_explored_mask = $702600
+!initial_maps_revealed = $B5FE74  ; must match address in patch/map_tiles.rs
 !initial_area_explored_mask = $B5F600  ; must match address in patch/map_tiles.rs
 !initial_area = $B5FE00  ; area used for the load station, not the map area
 !initial_load_station = $B5FE02
@@ -181,6 +182,9 @@ startup:
     sta $702700, X
     txa
     bne .copy_revealed
+
+    lda !initial_maps_revealed
+    sta !maps_part_revealed
 
 .skip_init:
 

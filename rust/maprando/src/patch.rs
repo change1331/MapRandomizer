@@ -1818,6 +1818,23 @@ impl<'a> Patcher<'a> {
                 .preset
                 .clone(),
         )?;
+        let maplayoutpreset = Some(self.randomization.settings.map_layout.clone());
+        self.write_preset(230, maplayoutpreset)?;
+        let objpreset;
+        if self.randomization.settings.start_location_mode == StartLocationMode::Escape {
+            objpreset = Some("Escape".to_owned());
+        } else {
+            objpreset = match self.randomization.settings.objectives_mode {
+                crate::settings::ObjectivesMode::None => Some("None".to_owned()),
+                crate::settings::ObjectivesMode::Bosses => Some("Bosses".to_owned()),
+                crate::settings::ObjectivesMode::Minibosses => Some("Minibosses".to_owned()),
+                crate::settings::ObjectivesMode::Metroids => Some("Metroid".to_owned()),
+                crate::settings::ObjectivesMode::Chozos => Some("Chozos".to_owned()),
+                crate::settings::ObjectivesMode::Pirates => Some("Pirates".to_owned()),
+                crate::settings::ObjectivesMode::Random => Some("Random".to_owned()),
+            };
+        }
+        self.write_preset(232, objpreset)?;
 
         // Write item locations in credits tilemap
         let item_name_pairs: Vec<(String, String)> = [

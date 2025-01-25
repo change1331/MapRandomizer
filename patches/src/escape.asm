@@ -252,8 +252,10 @@ room_main:
     phb                         ; do vanilla setup to call room main asm
     phk
     plb
+    lda remove_enemies_opt
+    beq .noexplosions
     jsr $c124                   ; explosions etc
-
+.noexplosions
     ;; refill samus health (CHANGE THIS)
     lda $1f64
     bne .refill_done
